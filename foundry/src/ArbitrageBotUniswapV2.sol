@@ -77,7 +77,34 @@ contract ArbitrageBotUniswapV2 {
         uint256 amount0,
         uint256 amount1,
         bytes calldata data
-    ) external {}
+    ) external {
+        FlashSwapParams memory params = abi.decode(data, (FlashSwapParams));
+        address token0 = IUniswapV2Pair(params.pair0).token0();
+        address token1 = IUniswapV2Pair(params.pair0).token1();
+
+        address tokenIn = params.isZeroForOne ? token0 : token1;
+        address tokenOut = params.isZeroForOne ? token1 : token0;
+        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(params.pair1)
+            .getReserves();
+        uint256 amountOut = params.isZeroForOne
+            ? _getAmountOut(params.amountOut, reserve1, reserve0)
+            : _getAmountOut(params.amountOut, reserve0, reserve1);
+
+        IERC20(tokenOut).transfer(params.pair1, params.amountOut);
+        IUniswapV2Pair(params.pair1).swap({
+            amount0Out: params.isZeroForOne ? amountOut : 0,
+            amount1Out: params.isZeroForOne ? 0 : amountOut,
+            to: address(this),
+            data: data
+        });
+        IERC20(tokenIn).transfer(params.pair0, params.amountIn);
+        uint256 profit = amountOut - params.amountIn;
+        require(
+            profit >= params.minProfit,
+            ArbitrageBotUniswapV2_NotEnoughProfit()
+        );
+        IERC20(tokenIn).transfer(params.caller, profit);
+    }
 
     function _getAmountOut(
         uint256 amountIn,

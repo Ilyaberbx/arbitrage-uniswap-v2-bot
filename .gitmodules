@@ -10,3 +10,6 @@
 [submodule "foundry/lib/contracts"]
 	path = foundry/lib/contracts
 	url = https://github.com/openzepellin/contracts
+[submodule "foundry/lib/openzeppelin-contracts"]
+	path = foundry/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts

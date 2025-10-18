@@ -8,6 +8,8 @@ import {IERC20} from "@uniswap/v2-core/contracts/interfaces/IERC20.sol";
 import {IUniswapV2Router02} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import {IWETH} from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 
+error OwnableUnauthorizedAccount(address account);
+
 contract ArbitrageBotUniswapV2Test is Test {
     address constant UNISWAP_V2_PAIR_ADDRESS =
         0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc;
@@ -24,7 +26,14 @@ contract ArbitrageBotUniswapV2Test is Test {
     ArbitrageBotUniswapV2 private s_arbitrageBot;
     address private s_alice = makeAddr("alice");
 
+    event ProfitMade(
+        address indexed caller,
+        address indexed token,
+        uint256 profit
+    );
+
     function setUp() public {
+        vm.prank(s_alice);
         s_arbitrageBot = new ArbitrageBotUniswapV2();
     }
 
@@ -102,6 +111,39 @@ contract ArbitrageBotUniswapV2Test is Test {
             "Arbitrage should be profitable"
         );
         console2.log("Profit:", finalBalance - initialBalance);
+        vm.stopPrank();
+    }
+
+    function test_flashSwapArbitrage_notOwner() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUnauthorizedAccount.selector,
+                address(this)
+            )
+        );
+        s_arbitrageBot.flashSwapArbitrage(
+            UNISWAP_V2_PAIR_ADDRESS,
+            SUSHISWAP_V2_PAIR_ADDRESS,
+            true,
+            1e11,
+            1e6
+        );
+    }
+
+    function test_flashSwapArbitrage_emitsProfitMadeEvent()
+        public
+        createArbitrageOpportunity
+    {
+        vm.startPrank(s_alice);
+        vm.expectEmit(true, true, false, false);
+        emit ProfitMade(s_alice, address(USDC), 0);
+        s_arbitrageBot.flashSwapArbitrage(
+            UNISWAP_V2_PAIR_ADDRESS,
+            SUSHISWAP_V2_PAIR_ADDRESS,
+            true,
+            1e11,
+            1e6
+        );
         vm.stopPrank();
     }
 }

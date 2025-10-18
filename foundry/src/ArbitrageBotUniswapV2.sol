@@ -5,14 +5,9 @@ import {IUniswapV2Router02} from "@uniswap/v2-periphery/contracts/interfaces/IUn
 import {IUniswapV2Pair} from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import {IERC20} from "@uniswap/v2-core/contracts/interfaces/IERC20.sol";
 import {IUniswapV2Factory} from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
+import {console2} from "forge-std/console2.sol";
 
-error ArbitrageBotUniswapV2_RouterAddressIsZero();
-error ArbitrageBotUniswapV2_TokenAddressIsZero();
-error ArbitrageBotUniswapV2_AmountInIsZero();
-error ArbitrageBotUniswapV2_MinProfitIsZero();
-error ArbitrageBotUniswapV2_PairAddressIsZero();
 error ArbitrageBotUniswapV2_NotEnoughProfit();
-error ArbitrageBotUniswapV2_InvalidUniswapV2CallSender();
 
 contract ArbitrageBotUniswapV2 {
     /**
@@ -52,6 +47,9 @@ contract ArbitrageBotUniswapV2 {
             isZeroForOne ? reserve1 : reserve0
         );
 
+        console2.log("Amount in:", amountIn);
+        console2.log("Amount out:", amountOut);
+
         bytes memory data = abi.encode(
             FlashSwapParams(
                 msg.sender,
@@ -90,13 +88,26 @@ contract ArbitrageBotUniswapV2 {
             ? _getAmountOut(params.amountOut, reserve1, reserve0)
             : _getAmountOut(params.amountOut, reserve0, reserve1);
 
+        console2.log("Amount out:", amountOut);
+        console2.log("Amount to repay:", params.amountOut);
         IERC20(tokenOut).transfer(params.pair1, params.amountOut);
+
+        console2.log(
+            "Token in balance before swap:",
+            IERC20(tokenIn).balanceOf(address(this))
+        );
+
         IUniswapV2Pair(params.pair1).swap({
             amount0Out: params.isZeroForOne ? amountOut : 0,
             amount1Out: params.isZeroForOne ? 0 : amountOut,
             to: address(this),
-            data: data
+            data: ""
         });
+        console2.log(
+            "Token in balance after swap:",
+            IERC20(tokenIn).balanceOf(address(this))
+        );
+        console2.log("Amount in:", params.amountIn);
         IERC20(tokenIn).transfer(params.pair0, params.amountIn);
         uint256 profit = amountOut - params.amountIn;
         require(

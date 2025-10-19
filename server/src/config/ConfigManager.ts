@@ -1,5 +1,4 @@
 import { ChainConfig, getChainConfig, getAllChains } from './ChainConfig'
-import { AMMConfig, getAMMsForChain, getPairByAddress, PairInfo } from './AMMConfig'
 import { ContractConfig, getContractConfig } from './ContractConfig'
 
 export class ConfigManager {
@@ -22,13 +21,6 @@ export class ConfigManager {
    */
   getContract(chainName: string): ContractConfig | null {
     return getContractConfig(chainName)
-  }
-
-  /**
-   * Get pair information by address
-   */
-  getPair(chainName: string, pairAddress: string): PairInfo | null {
-    return getPairByAddress(chainName, pairAddress)
   }
 }
 export const configManager = new ConfigManager()

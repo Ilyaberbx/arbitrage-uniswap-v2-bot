@@ -66,24 +66,39 @@ export const ARBITRAGE_BOT_ABI = [
   }
 ] as const
 
-// Mock contract addresses for each chain
+// Contract addresses will be added when contracts are deployed
 export const ARBITRAGE_BOT_CONTRACTS: Record<string, ContractConfig> = {
-  ethereum: {
-    address: '0x1234567890123456789012345678901234567890',
-    chainId: 1,
-    abi: ARBITRAGE_BOT_ABI
-  },
-  polygon: {
-    address: '0x2345678901234567890123456789012345678901',
-    chainId: 137,
-    abi: ARBITRAGE_BOT_ABI
-  },
-  arbitrum: {
-    address: '0x3456789012345678901234567890123456789012',
-    chainId: 42161,
-    abi: ARBITRAGE_BOT_ABI
-  }
+  // ethereum: { address: '0x...', chainId: 1, abi: ARBITRAGE_BOT_ABI },
+  // polygon: { address: '0x...', chainId: 137, abi: ARBITRAGE_BOT_ABI },  
+  // arbitrum: { address: '0x...', chainId: 42161, abi: ARBITRAGE_BOT_ABI }
 }
+
+// Uniswap V2 Pair ABI for getReserves function
+export const UNISWAP_V2_PAIR_ABI = [
+  {
+    "type": "function",
+    "name": "getReserves",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "reserve0",
+        "type": "uint112",
+        "internalType": "uint112"
+      },
+      {
+        "name": "reserve1", 
+        "type": "uint112",
+        "internalType": "uint112"
+      },
+      {
+        "name": "blockTimestampLast",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  }
+] as const
 
 export const getContractConfig = (chainName: string): ContractConfig | null => {
   return ARBITRAGE_BOT_CONTRACTS[chainName] || null

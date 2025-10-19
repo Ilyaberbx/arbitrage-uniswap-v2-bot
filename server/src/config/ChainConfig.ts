@@ -1,8 +1,12 @@
+import { Chain } from 'viem'
+import { mainnet, polygon, arbitrum } from 'viem/chains'
+
 export interface ChainConfig {
   chainId: number
   name: string
   rpcUrl: string
   isTestnet: boolean
+  viemChain: Chain
 }
 
 export const MOCK_CHAINS: Record<string, ChainConfig> = {
@@ -10,20 +14,23 @@ export const MOCK_CHAINS: Record<string, ChainConfig> = {
     chainId: 1,
     name: 'Ethereum',
     rpcUrl: 'https://eth.llamarpc.com',
-    isTestnet: false
+    isTestnet: false,
+    viemChain: mainnet,
   },
   polygon: {
     chainId: 137,
     name: 'Polygon',
-    rpcUrl: 'https://polygon.llamarpc.com',
-    isTestnet: false
+    rpcUrl: 'https://polygon-rpc.com',
+    isTestnet: false,
+    viemChain: polygon,
   },
   arbitrum: {
     chainId: 42161,
-    name: 'Arbitrum One',
-    rpcUrl: 'https://arbitrum.llamarpc.com',
-    isTestnet: false
-  }
+    name: 'Arbitrum',
+    rpcUrl: 'https://arb1.arbitrum.io/rpc',
+    isTestnet: false,
+    viemChain: arbitrum,
+  },
 }
 
 export const getChainConfig = (chainName: string): ChainConfig | null => {

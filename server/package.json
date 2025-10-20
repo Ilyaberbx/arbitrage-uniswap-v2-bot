@@ -13,11 +13,12 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@uniswap/v2-sdk": "^4.16.0",
     "viem": "^2.21.19"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   }
 }

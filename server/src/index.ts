@@ -1,10 +1,23 @@
 import { pairsService } from "./services/PairsService";
-import { TRADING_PAIRS } from "./config/TradingPairs";
+import {
+  ETH_TEST_STRATEGY,
+  ARBITRUM_TEST_STRATEGY,
+} from "./config/ArbitrageStrategiesConfig";
 
 class ReservesFetcher {
   async fetchAllPairs() {
-    const pairsInfo = await pairsService.getPairsInfo(TRADING_PAIRS);
-    console.log(pairsInfo);
+    const [ethPairsInfo, arbitrumPairsInfo] = await Promise.all([
+      pairsService.getPairsInfo(
+        ETH_TEST_STRATEGY.pairs,
+        ETH_TEST_STRATEGY.chainName
+      ),
+      pairsService.getPairsInfo(
+        ARBITRUM_TEST_STRATEGY.pairs,
+        ARBITRUM_TEST_STRATEGY.chainName
+      ),
+    ]);
+    console.log(ethPairsInfo);
+    console.log(arbitrumPairsInfo);
   }
 }
 

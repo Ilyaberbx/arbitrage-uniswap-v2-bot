@@ -1,6 +1,5 @@
 import { Address } from "viem";
 
-// AMMConfig is kept for future real implementation
 export interface TokenInfo {
   address: Address;
   symbol: string;
@@ -8,7 +7,7 @@ export interface TokenInfo {
 }
 
 export interface PairInfo {
-  pairAddress: string;
+  pairAddress: Address;
   token0: TokenInfo;
   token1: TokenInfo;
   reserve0: bigint;

@@ -60,27 +60,25 @@ export default class ArbitrageMath {
     return numerator / denominator;
   }
 
-  public static calculateOptimalArbitrageAmount(
+  public static assessArbitrageOpportunity(
     pair0: PairInfo,
     pair1: PairInfo,
     feeNumerator: bigint = 997n,
     feeDenominator: bigint = 1000n
-  ): bigint {
+  ): { optimalArbitrageAmount: bigint; isZeroForOne: boolean } {
     const tokensInSameOrder = pair0.token0.address === pair1.token0.address;
     const price0CumulativeLast = pair0.price0CumulativeLast;
     const price1CumulativeLast = tokensInSameOrder
       ? pair1.price0CumulativeLast
       : pair1.price1CumulativeLast;
 
-    console.log("price0CumulativeLast", price0CumulativeLast);
-    console.log("price1CumulativeLast", price1CumulativeLast);
     if (price0CumulativeLast > price1CumulativeLast) {
       const reserveAIn = pair1.reserve0;
       const reserveAOut = pair1.reserve1;
       const reserveBIn = tokensInSameOrder ? pair0.reserve0 : pair0.reserve1;
       const reserveBOut = tokensInSameOrder ? pair0.reserve1 : pair0.reserve0;
 
-      return this.calculateArbitrageOptimalAmount(
+      const optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
         reserveAIn,
         reserveAOut,
         reserveBIn,
@@ -88,6 +86,8 @@ export default class ArbitrageMath {
         feeNumerator,
         feeDenominator
       );
+
+      return { optimalArbitrageAmount, isZeroForOne: true };
     }
 
     const reserveAIn = pair0.reserve0;
@@ -95,7 +95,7 @@ export default class ArbitrageMath {
     const reserveBIn = tokensInSameOrder ? pair1.reserve0 : pair1.reserve1;
     const reserveBOut = tokensInSameOrder ? pair1.reserve1 : pair1.reserve0;
 
-    return this.calculateArbitrageOptimalAmount(
+    const optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
       reserveAIn,
       reserveAOut,
       reserveBIn,
@@ -103,5 +103,7 @@ export default class ArbitrageMath {
       feeNumerator,
       feeDenominator
     );
+
+    return { optimalArbitrageAmount, isZeroForOne: false };
   }
 }

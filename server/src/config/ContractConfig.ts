@@ -1,5 +1,7 @@
+import { Address } from "viem";
+
 export interface ContractConfig {
-  address: string;
+  address: Address;
   chainId: number;
   abi: readonly any[];
 }
@@ -68,9 +70,11 @@ export const ARBITRAGE_BOT_ABI = [
 
 // Contract addresses will be added when contracts are deployed
 export const ARBITRAGE_BOT_CONTRACTS: Record<string, ContractConfig> = {
-  // ethereum: { address: '0x...', chainId: 1, abi: ARBITRAGE_BOT_ABI },
-  // polygon: { address: '0x...', chainId: 137, abi: ARBITRAGE_BOT_ABI },
-  // arbitrum: { address: '0x...', chainId: 42161, abi: ARBITRAGE_BOT_ABI }
+  ethereum: {
+    address: "0x3691D652b6d8A6650FB35b8Ea028C88470C0E690",
+    chainId: 1,
+    abi: ARBITRAGE_BOT_ABI,
+  },
 };
 
 // Uniswap V2 Pair ABI for getReserves function

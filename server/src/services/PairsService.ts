@@ -12,7 +12,7 @@ export class PairsService {
   ): Promise<PairInfo[]> {
     const pairsInfo: PairInfo[] = [];
 
-    const client = viemClientsService.getClient(chainName);
+    const client = viemClientsService.getPublicClient(chainName);
     const pairsContracts = tradingPairs.flatMap((pair) =>
       this.getPairContracts(pair)
     );

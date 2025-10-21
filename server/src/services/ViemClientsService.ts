@@ -1,17 +1,24 @@
-import { createPublicClient, http, PublicClient } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  PublicClient,
+  WalletClient,
+} from "viem";
 import { configManager } from "../config/ConfigManager";
-
+import { privateKeyToAccount } from "viem/accounts";
 export class ViemClientsService {
-  private clients: Record<string, PublicClient> = {};
+  private publicClients: Record<string, PublicClient> = {};
+  private walletClients: Record<string, WalletClient> = {};
 
-  public getClient(chainName: string): PublicClient {
+  public getPublicClient(chainName: string): PublicClient {
     const chain = configManager.getChain(chainName);
     if (!chain) {
       throw new Error(`Chain '${chainName}' not found`);
     }
 
-    if (this.clients[chainName]) {
-      return this.clients[chainName];
+    if (this.publicClients[chainName]) {
+      return this.publicClients[chainName];
     }
 
     const client = createPublicClient({
@@ -19,7 +26,33 @@ export class ViemClientsService {
       transport: http(chain.rpcUrl),
     });
 
-    this.clients[chainName] = client;
+    this.publicClients[chainName] = client;
+    return client;
+  }
+
+  public getWalletClient(chainName: string): WalletClient {
+    const chain = configManager.getChain(chainName);
+    if (!chain) {
+      throw new Error(`Chain '${chainName}' not found`);
+    }
+
+    if (this.walletClients[chainName]) {
+      return this.walletClients[chainName];
+    }
+
+    const account = privateKeyToAccount(chain.walletPrivateKey);
+
+    if (!account) {
+      throw new Error(`Account not found for chain '${chainName}'`);
+    }
+
+    const client = createWalletClient({
+      account: account,
+      chain: chain.viemChain,
+      transport: http(chain.rpcUrl),
+    });
+
+    this.walletClients[chainName] = client;
     return client;
   }
 }

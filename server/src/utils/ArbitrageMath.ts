@@ -1,4 +1,3 @@
-import { PairInfo } from "../types/AMMV2Config";
 import { BigMath } from "./BigMath";
 
 export default class ArbitrageMath {
@@ -12,128 +11,58 @@ export default class ArbitrageMath {
     feeNumerator: bigint = 997n,
     feeDenominator: bigint = 1000n
   ): bigint {
-    const oneMinusFee = (feeNumerator * this.PRECISION) / feeDenominator;
-    const oneMinusFeeSquared = (oneMinusFee * oneMinusFee) / this.PRECISION;
-
+    const oneMinusFee = this.div(feeNumerator, feeDenominator);
+    const oneMinusFeeSquared = this.mul(oneMinusFee, oneMinusFee);
     const k =
-      (oneMinusFee * reserveBIn) / this.PRECISION +
-      (oneMinusFeeSquared * reserveAOut) / this.PRECISION;
-    const a = BigMath.pow(k, 2n);
-    const b = 2n * k * reserveAIn * reserveBIn;
-    const reservesIn = reserveAIn * reserveBIn;
-    const reservesInSquared = BigMath.pow(reservesIn, 2n);
-    const reservesInAndOut = reservesIn * reserveAOut * reserveBOut;
+      this.mul(oneMinusFee, reserveBIn) +
+      this.mul(oneMinusFeeSquared, reserveAOut);
+
+    const reservesIn = this.mul(reserveAIn, reserveBIn);
+    const a = this.mul(k, k);
+    const b = 2n * this.mul(k, reservesIn);
+    const reservesInSquared = this.mul(reservesIn, reservesIn);
+    const reservesInAndOut = this.mul(
+      reservesIn,
+      this.mul(reserveAOut, reserveBOut)
+    );
+
     const c =
-      reservesInSquared -
-      (oneMinusFeeSquared * reservesInAndOut) / this.PRECISION;
+      reservesInSquared - this.mul(oneMinusFeeSquared, reservesInAndOut);
 
-    const discriminant = BigMath.pow(b, 2n) - 4n * a * c;
-
+    const discriminant = this.mul(b, b) - 4n * this.mul(a, c);
     if (discriminant < 0n) {
       return 0n;
     }
-
     const denominator = 2n * a;
     if (denominator === 0n) {
       return 0n;
     }
+    const sqrtDiscriminant = BigMath.sqrt(discriminant);
 
-    const numerator = -b + BigMath.sqrt(discriminant);
-    const optimalArbitrageAmount = numerator / denominator;
+    const sqrtDiscriminantScaled = sqrtDiscriminant * 10n ** 9n;
 
+    const numerator = -b + sqrtDiscriminantScaled;
+
+    const optimalArbitrageAmount = this.div(numerator, denominator);
     if (optimalArbitrageAmount < 0n) {
       return 0n;
     }
-
     return optimalArbitrageAmount;
   }
 
-  public static assessArbitrageOpportunity(
-    pair0: PairInfo,
-    pair1: PairInfo,
-    feeNumerator: bigint = 997n,
-    feeDenominator: bigint = 1000n
-  ): {
-    optimalArbitrageAmount: bigint;
-    isZeroForOne: boolean;
-    pair0: PairInfo;
-    pair1: PairInfo;
-  } {
-    const tokensInSameOrder = pair0.token0.address === pair1.token0.address;
-    const pair0ReservesRatio = pair0.reserve0 / pair0.reserve1;
-    const pair1ReservesRatio = tokensInSameOrder
-      ? pair1.reserve0 / pair1.reserve1
-      : pair1.reserve1 / pair1.reserve0;
+  public static normalize(value: bigint, decimals: number): bigint {
+    return value * 10n ** BigInt(18 - decimals);
+  }
 
-    const idealLiquidityDifferencePair0 = BigMath.abs(1n - pair0ReservesRatio);
-    const idealLiquidityDifferencePair1 = BigMath.abs(1n - pair1ReservesRatio);
+  public static denormalize(value: bigint, decimals: number): bigint {
+    return value / 10n ** BigInt(18 - decimals);
+  }
 
-    if (idealLiquidityDifferencePair0 > idealLiquidityDifferencePair1) {
-      const isZeroForOne = pair0.reserve0 < pair0.reserve1;
-      const normalizedPair1Reserve0 = tokensInSameOrder
-        ? pair1.reserve0
-        : pair1.reserve1;
-      const normalizedPair1Reserve1 = tokensInSameOrder
-        ? pair1.reserve1
-        : pair1.reserve0;
+  public static mul(x: bigint, y: bigint): bigint {
+    return (x * y) / this.PRECISION;
+  }
 
-      let reserveAIn = isZeroForOne ? pair0.reserve0 : pair0.reserve1;
-      let reserveAOut = isZeroForOne ? pair0.reserve1 : pair0.reserve0;
-      let reserveBIn = isZeroForOne
-        ? normalizedPair1Reserve0
-        : normalizedPair1Reserve1;
-      let reserveBOut = isZeroForOne
-        ? normalizedPair1Reserve1
-        : normalizedPair1Reserve0;
-
-      let optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
-        reserveAIn,
-        reserveAOut,
-        reserveBIn,
-        reserveBOut,
-        feeNumerator,
-        feeDenominator
-      );
-
-      return {
-        optimalArbitrageAmount,
-        isZeroForOne: isZeroForOne,
-        pair0,
-        pair1,
-      };
-    }
-
-    const isZeroForOne = pair1.reserve0 < pair1.reserve1;
-    const normalizedPair0Reserve0 = tokensInSameOrder
-      ? pair0.reserve0
-      : pair0.reserve1;
-    const normalizedPair0Reserve1 = tokensInSameOrder
-      ? pair0.reserve1
-      : pair0.reserve0;
-
-    let reserveAIn = isZeroForOne ? pair1.reserve0 : pair1.reserve1;
-    let reserveAOut = isZeroForOne ? pair1.reserve1 : pair1.reserve0;
-    let reserveBIn = isZeroForOne
-      ? normalizedPair0Reserve0
-      : normalizedPair0Reserve1;
-    let reserveBOut = isZeroForOne
-      ? normalizedPair0Reserve1
-      : normalizedPair0Reserve0;
-
-    let optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
-      reserveAIn,
-      reserveAOut,
-      reserveBIn,
-      reserveBOut,
-      feeNumerator,
-      feeDenominator
-    );
-
-    return {
-      optimalArbitrageAmount,
-      isZeroForOne: isZeroForOne,
-      pair0: pair1,
-      pair1: pair0,
-    };
+  public static div(x: bigint, y: bigint): bigint {
+    return (x * this.PRECISION) / y;
   }
 }

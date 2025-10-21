@@ -14,26 +14,7 @@ export class FlashSwapArbitrageService {
           continue;
         }
 
-        const result = ArbitrageMath.assessArbitrageOpportunity(
-          pair,
-          otherPair
-        );
-
-        if (result.optimalArbitrageAmount <= 0) {
-          continue;
-        }
-
-        const flashSwapParams: FlashSwapParams = {
-          pair0: result.pair0.pairAddress,
-          pair1: result.pair1.pairAddress,
-          isZeroForOne: result.isZeroForOne,
-          amountIn: result.optimalArbitrageAmount,
-          minProfit: 1n,
-        };
-
-        this.displayOpportunity(flashSwapParams);
-
-        return flashSwapParams;
+        return undefined;
       }
     }
 

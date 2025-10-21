@@ -1,39 +1,18 @@
-import { pairsService } from "./services/PairsService";
-import { flashSwapArbitrageService } from "./services/FlashSwapArbitrageService";
-import { ARBITRUM_V2_STRATEGY } from "./constants/ArbitrageStrategiesConstants";
+import { strategiesFactoryService } from "./services/StrategiesFactoryService";
 
-class ReservesFetcher {
-  async fetchAllPairs() {
-    const [arbitrumPairsInfo] = await Promise.all([
-      pairsService.getPairsInfo(
-        ARBITRUM_V2_STRATEGY.pairs,
-        ARBITRUM_V2_STRATEGY.chainName
-      ),
-    ]);
+async function main() {
+  const strategies = strategiesFactoryService.createStrategies();
+  const promises = strategies.map(async (strategy) => {
+    return strategy.tick();
+  });
 
-    const flashSwapParams =
-      flashSwapArbitrageService.tryFindOpportunity(arbitrumPairsInfo);
-
-    const hasOpportunity = flashSwapParams !== undefined;
-    if (!hasOpportunity) {
-      console.log("No opportunity found");
-      return;
+  while (true) {
+    try {
+      await Promise.all(promises);
+    } catch (error) {
+      console.error(error);
     }
-
-    console.log("Executing flash swap...");
-    flashSwapArbitrageService.executeFlashSwap(
-      flashSwapParams,
-      ARBITRUM_V2_STRATEGY.chainName
-    );
-    console.log("Flash swap executed");
   }
 }
 
-async function main() {
-  const fetcher = new ReservesFetcher();
-  await fetcher.fetchAllPairs();
-}
-
-if (require.main === module) {
-  main().catch(console.error);
-}
+main().catch(console.error);

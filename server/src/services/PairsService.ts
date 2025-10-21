@@ -1,7 +1,7 @@
 import { Address } from "viem";
-import { PairInfo } from "../config/AMMConfig";
-import { UNISWAP_V2_PAIR_ABI } from "../config/ContractConfig";
-import { TradingPair } from "../config/ArbitrageStrategiesConfig";
+import { PairInfo } from "../types/AMMV2Config";
+import { UNISWAP_V2_PAIR_ABI } from "../constants/AbiConstants";
+import { TradingPair } from "../types/ArbitrageV2Config";
 import { viemClientsService } from "./ViemClientsService";
 import { erc20Abi } from "viem";
 

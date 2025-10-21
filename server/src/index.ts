@@ -1,13 +1,13 @@
 import { pairsService } from "./services/PairsService";
 import { flashSwapArbitrageService } from "./services/FlashSwapArbitrageService";
-import { ARBITRUM_TEST_STRATEGY } from "./config/ArbitrageStrategiesConfig";
+import { ARBITRUM_V2_STRATEGY } from "./constants/ArbitrageStrategiesConstants";
 
 class ReservesFetcher {
   async fetchAllPairs() {
     const [arbitrumPairsInfo] = await Promise.all([
       pairsService.getPairsInfo(
-        ARBITRUM_TEST_STRATEGY.pairs,
-        ARBITRUM_TEST_STRATEGY.chainName
+        ARBITRUM_V2_STRATEGY.pairs,
+        ARBITRUM_V2_STRATEGY.chainName
       ),
     ]);
 
@@ -23,7 +23,7 @@ class ReservesFetcher {
     console.log("Executing flash swap...");
     flashSwapArbitrageService.executeFlashSwap(
       flashSwapParams,
-      ARBITRUM_TEST_STRATEGY.chainName
+      ARBITRUM_V2_STRATEGY.chainName
     );
     console.log("Flash swap executed");
   }

@@ -1,13 +1,4 @@
-import { Address } from "viem";
-
-export interface ContractConfig {
-  address: Address;
-  chainId: number;
-  abi: readonly any[];
-}
-
-// ABI for the ArbitrageBotUniswapV2 contract (flashSwapArbitrage function)
-export const ARBITRAGE_BOT_ABI = [
+export const ARBITRAGE_BOT_UNISWAP_V2_ABI = [
   {
     type: "function",
     name: "flashSwapArbitrage",
@@ -68,16 +59,6 @@ export const ARBITRAGE_BOT_ABI = [
   },
 ] as const;
 
-// Contract addresses will be added when contracts are deployed
-export const ARBITRAGE_BOT_CONTRACTS: Record<string, ContractConfig> = {
-  ethereum: {
-    address: "0x3691D652b6d8A6650FB35b8Ea028C88470C0E690",
-    chainId: 1,
-    abi: ARBITRAGE_BOT_ABI,
-  },
-};
-
-// Uniswap V2 Pair ABI for getReserves function
 export const UNISWAP_V2_PAIR_ABI = [
   {
     inputs: [],
@@ -518,7 +499,3 @@ export const UNISWAP_V2_PAIR_ABI = [
     type: "function",
   },
 ] as const;
-
-export const getContractConfig = (chainName: string): ContractConfig | null => {
-  return ARBITRAGE_BOT_CONTRACTS[chainName] || null;
-};

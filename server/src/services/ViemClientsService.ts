@@ -5,14 +5,14 @@ import {
   PublicClient,
   WalletClient,
 } from "viem";
-import { configManager } from "../config/ConfigManager";
+import { configsService } from "../services/ConfigsService";
 import { privateKeyToAccount } from "viem/accounts";
 export class ViemClientsService {
   private publicClients: Record<string, PublicClient> = {};
   private walletClients: Record<string, WalletClient> = {};
 
   public getPublicClient(chainName: string): PublicClient {
-    const chain = configManager.getChain(chainName);
+    const chain = configsService.getChain(chainName);
     if (!chain) {
       throw new Error(`Chain '${chainName}' not found`);
     }
@@ -31,7 +31,7 @@ export class ViemClientsService {
   }
 
   public getWalletClient(chainName: string): WalletClient {
-    const chain = configManager.getChain(chainName);
+    const chain = configsService.getChain(chainName);
     if (!chain) {
       throw new Error(`Chain '${chainName}' not found`);
     }

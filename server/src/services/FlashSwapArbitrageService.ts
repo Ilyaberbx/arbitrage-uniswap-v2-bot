@@ -1,7 +1,6 @@
-import { PairInfo } from "../config/AMMConfig";
-import { FlashSwapParams } from "../config/ArbitrageStrategiesConfig";
-import { configManager } from "../config/ConfigManager";
-import { ARBITRAGE_BOT_ABI } from "../config/ContractConfig";
+import { PairInfo } from "../types/AMMV2Config";
+import { FlashSwapParams } from "../types/ArbitrageV2Config";
+import { configsService } from "../services/ConfigsService";
 import ArbitrageMath from "../utils/ArbitrageMath";
 import { viemClientsService } from "./ViemClientsService";
 
@@ -46,8 +45,8 @@ export class FlashSwapArbitrageService {
     chainName: string
   ): Promise<void> {
     const client = viemClientsService.getWalletClient(chainName);
-    const chainConfig = configManager.getChain(chainName);
-    const contractConfig = configManager.getContract(chainName);
+    const chainConfig = configsService.getChain(chainName);
+    const contractConfig = configsService.getContract(chainName);
 
     if (!contractConfig) {
       throw new Error(`Contract not found for chain ${chainName}`);
@@ -62,7 +61,7 @@ export class FlashSwapArbitrageService {
     const txHash = await client.writeContract({
       address: contractConfig.address,
       chain: chainConfig.viemChain,
-      abi: ARBITRAGE_BOT_ABI,
+      abi: contractConfig.abi,
       functionName: "flashSwapArbitrage",
       account: client.account,
       args: [

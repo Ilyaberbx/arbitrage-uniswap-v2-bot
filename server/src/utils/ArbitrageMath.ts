@@ -1,4 +1,4 @@
-import { PairInfo } from "../config/AMMConfig";
+import { PairInfo } from "../types/AMMV2Config";
 import { BigMath } from "./BigMath";
 
 export default class ArbitrageMath {

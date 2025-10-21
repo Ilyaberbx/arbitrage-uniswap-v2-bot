@@ -14,10 +14,6 @@ export const ARBITRUM_V2_PAIRS: TradingPair[] = [
     address: "0x84652bb2539513BAf36e225c930Fdd8eaa63CE27",
     name: "USDC/WETH (Camelot)",
   },
-  {
-    address: "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443",
-    name: "USDC/WETH (Zyberswap)",
-  },
 ];
 export const ARBITRUM_V2_STRATEGY: ArbitrageStrategyPairs = {
   chainName: "arbitrum",

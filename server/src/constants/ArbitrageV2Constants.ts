@@ -1,3 +1,4 @@
+import { arbitrum } from "viem/chains";
 import {
   ArbitrageStrategyPairs,
   TradingPair,
@@ -20,7 +21,7 @@ export const ARBITRUM_V2_STRATEGY: ArbitrageStrategyPairs = {
   pairs: ARBITRUM_V2_PAIRS,
 };
 export const ARBITRAGE_BOT_V2_CONTRACTS: Record<string, ContractConfig> = {
-  ethereum: {
+  arbitrum: {
     address: "0x3691D652b6d8A6650FB35b8Ea028C88470C0E690",
     abi: ARBITRAGE_BOT_UNISWAP_V2_ABI,
   },

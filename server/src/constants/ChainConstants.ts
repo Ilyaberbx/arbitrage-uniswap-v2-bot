@@ -25,7 +25,8 @@ export const CHAINS: Record<string, ChainConfig> = {
     rpcUrl: "https://arb1.arbitrum.io/rpc",
     isTestnet: false,
     viemChain: arbitrum,
-    walletPrivateKey: (process.env.EVM_WALLET_PRIVATE_KEY as Hex) || "",
+    walletPrivateKey:
+      "0xe76481e456ff7619a2be9dff8c5a17b32b5c350eec56c94a7b138e148e17bf46" as Hex,
   },
 };
 

@@ -65,4 +65,20 @@ export default class ArbitrageMath {
   public static div(x: bigint, y: bigint): bigint {
     return (x * this.PRECISION) / y;
   }
+
+  public static convertDecimals(
+    value: bigint,
+    fromDecimals: number,
+    toDecimals: number
+  ): bigint {
+    if (fromDecimals === toDecimals) {
+      return value;
+    }
+
+    if (fromDecimals > toDecimals) {
+      return value / 10n ** BigInt(fromDecimals - toDecimals);
+    } else {
+      return value * 10n ** BigInt(toDecimals - fromDecimals);
+    }
+  }
 }

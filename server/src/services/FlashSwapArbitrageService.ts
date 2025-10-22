@@ -56,7 +56,6 @@ export class FlashSwapArbitrageService {
     });
 
     const txHash = await walletClient.writeContract(request);
-
     console.log(`Transaction sent: ${txHash} on chain ${chainName}`);
   }
 

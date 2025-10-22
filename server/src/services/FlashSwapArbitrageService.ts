@@ -24,11 +24,11 @@ export class FlashSwapArbitrageService {
         }
 
         const flashSwapParams: FlashSwapParams = {
-          pair0: pair.pairAddress,
-          pair1: otherPair.pairAddress,
+          pair0: result.pair0.pairAddress,
+          pair1: result.pair1.pairAddress,
           isZeroForOne: result.isZeroForOne,
           amountIn: result.optimalArbitrageAmount,
-          minProfit: 0n,
+          minProfit: 1n,
         };
 
         this.displayOpportunity(flashSwapParams);
@@ -44,7 +44,8 @@ export class FlashSwapArbitrageService {
     flashSwapParams: FlashSwapParams,
     chainName: string
   ): Promise<void> {
-    const client = viemClientsService.getWalletClient(chainName);
+    const walletClient = viemClientsService.getWalletClient(chainName);
+    const publicClient = viemClientsService.getPublicClient(chainName);
     const chainConfig = configsService.getChain(chainName);
     const contractConfig = configsService.getContract(chainName);
 
@@ -54,16 +55,16 @@ export class FlashSwapArbitrageService {
     if (!chainConfig) {
       throw new Error(`Chain not found for chain ${chainName}`);
     }
-    if (!client.account) {
+    if (!walletClient.account) {
       throw new Error(`Account not found for chain ${chainName}`);
     }
 
-    const txHash = await client.writeContract({
+    const { request } = await publicClient.simulateContract({
       address: contractConfig.address,
       chain: chainConfig.viemChain,
       abi: contractConfig.abi,
+      account: walletClient.account,
       functionName: "flashSwapArbitrage",
-      account: client.account,
       args: [
         flashSwapParams.pair0,
         flashSwapParams.pair1,
@@ -72,6 +73,8 @@ export class FlashSwapArbitrageService {
         flashSwapParams.minProfit,
       ],
     });
+
+    const txHash = await walletClient.writeContract(request);
 
     console.log(`Transaction sent: ${txHash} on chain ${chainName}`);
   }

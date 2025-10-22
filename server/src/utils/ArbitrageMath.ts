@@ -2,7 +2,9 @@ import { PairInfo } from "../types/AMMV2Config";
 import { BigMath } from "./BigMath";
 
 export default class ArbitrageMath {
-  private static calculateArbitrageOptimalAmount(
+  private static readonly PRECISION = 10n ** 18n;
+
+  public static calculateArbitrageOptimalAmount(
     reserveAIn: bigint,
     reserveAOut: bigint,
     reserveBIn: bigint,
@@ -10,54 +12,40 @@ export default class ArbitrageMath {
     feeNumerator: bigint = 997n,
     feeDenominator: bigint = 1000n
   ): bigint {
-    const PRECISION = 10n ** 18n;
+    const oneMinusFee = (feeNumerator * this.PRECISION) / feeDenominator;
+    const oneMinusFeeSquared = (oneMinusFee * oneMinusFee) / this.PRECISION;
 
-    const oneMinusFeeNumerator = feeNumerator;
-    const oneMinusFeeDenominator = feeDenominator;
-
-    const oneMinusFeeSquaredNumerator =
-      oneMinusFeeNumerator * oneMinusFeeNumerator;
-    const oneMinusFeeSquaredDenominator =
-      oneMinusFeeDenominator * oneMinusFeeDenominator;
-
-    const termOne =
-      (oneMinusFeeNumerator * reserveBIn * PRECISION) / oneMinusFeeDenominator;
-    const termTwo =
-      (oneMinusFeeSquaredNumerator * reserveAOut * PRECISION) /
-      oneMinusFeeSquaredDenominator;
-    const k = (termOne + termTwo) / PRECISION;
-
-    const a = k * k;
-
+    const k =
+      (oneMinusFee * reserveBIn) / this.PRECISION +
+      (oneMinusFeeSquared * reserveAOut) / this.PRECISION;
+    const a = BigMath.pow(k, 2n);
     const b = 2n * k * reserveAIn * reserveBIn;
+    const reservesIn = reserveAIn * reserveBIn;
+    const reservesInSquared = BigMath.pow(reservesIn, 2n);
+    const reservesInAndOut = reservesIn * reserveAOut * reserveBOut;
+    const c =
+      reservesInSquared -
+      (oneMinusFeeSquared * reservesInAndOut) / this.PRECISION;
 
-    const reserveProduct = reserveAIn * reserveBIn;
-    const cTerm1 = reserveProduct * reserveProduct;
-    const cTerm2 =
-      (oneMinusFeeSquaredNumerator *
-        reserveAOut *
-        reserveAIn *
-        reserveBIn *
-        reserveBOut *
-        PRECISION) /
-      oneMinusFeeSquaredDenominator;
-    const c = cTerm1 - cTerm2 / PRECISION;
-
-    const discriminant = b * b - 4n * a * c;
+    const discriminant = BigMath.pow(b, 2n) - 4n * a * c;
 
     if (discriminant < 0n) {
       return 0n;
     }
 
-    const sqrtDiscriminant = BigMath.sqrt(discriminant);
-    const numerator = -b + sqrtDiscriminant;
     const denominator = 2n * a;
-
-    if (denominator === 0n || numerator <= 0n) {
+    if (denominator === 0n) {
       return 0n;
     }
 
-    return numerator / denominator;
+    const numerator = -b + BigMath.sqrt(discriminant);
+    const optimalArbitrageAmount = numerator / denominator;
+
+    if (optimalArbitrageAmount < 0n) {
+      return 0n;
+    }
+
+    return optimalArbitrageAmount;
   }
 
   public static assessArbitrageOpportunity(
@@ -65,20 +53,40 @@ export default class ArbitrageMath {
     pair1: PairInfo,
     feeNumerator: bigint = 997n,
     feeDenominator: bigint = 1000n
-  ): { optimalArbitrageAmount: bigint; isZeroForOne: boolean } {
+  ): {
+    optimalArbitrageAmount: bigint;
+    isZeroForOne: boolean;
+    pair0: PairInfo;
+    pair1: PairInfo;
+  } {
     const tokensInSameOrder = pair0.token0.address === pair1.token0.address;
-    const price0CumulativeLast = pair0.price0CumulativeLast;
-    const price1CumulativeLast = tokensInSameOrder
-      ? pair1.price0CumulativeLast
-      : pair1.price1CumulativeLast;
+    const pair0ReservesRatio = pair0.reserve0 / pair0.reserve1;
+    const pair1ReservesRatio = tokensInSameOrder
+      ? pair1.reserve0 / pair1.reserve1
+      : pair1.reserve1 / pair1.reserve0;
 
-    if (price0CumulativeLast > price1CumulativeLast) {
-      const reserveAIn = pair1.reserve0;
-      const reserveAOut = pair1.reserve1;
-      const reserveBIn = tokensInSameOrder ? pair0.reserve0 : pair0.reserve1;
-      const reserveBOut = tokensInSameOrder ? pair0.reserve1 : pair0.reserve0;
+    const idealLiquidityDifferencePair0 = BigMath.abs(1n - pair0ReservesRatio);
+    const idealLiquidityDifferencePair1 = BigMath.abs(1n - pair1ReservesRatio);
 
-      const optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
+    if (idealLiquidityDifferencePair0 > idealLiquidityDifferencePair1) {
+      const isZeroForOne = pair0.reserve0 < pair0.reserve1;
+      const normalizedPair1Reserve0 = tokensInSameOrder
+        ? pair1.reserve0
+        : pair1.reserve1;
+      const normalizedPair1Reserve1 = tokensInSameOrder
+        ? pair1.reserve1
+        : pair1.reserve0;
+
+      let reserveAIn = isZeroForOne ? pair0.reserve0 : pair0.reserve1;
+      let reserveAOut = isZeroForOne ? pair0.reserve1 : pair0.reserve0;
+      let reserveBIn = isZeroForOne
+        ? normalizedPair1Reserve0
+        : normalizedPair1Reserve1;
+      let reserveBOut = isZeroForOne
+        ? normalizedPair1Reserve1
+        : normalizedPair1Reserve0;
+
+      let optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
         reserveAIn,
         reserveAOut,
         reserveBIn,
@@ -87,15 +95,32 @@ export default class ArbitrageMath {
         feeDenominator
       );
 
-      return { optimalArbitrageAmount, isZeroForOne: true };
+      return {
+        optimalArbitrageAmount,
+        isZeroForOne: isZeroForOne,
+        pair0,
+        pair1,
+      };
     }
 
-    const reserveAIn = pair0.reserve0;
-    const reserveAOut = pair0.reserve1;
-    const reserveBIn = tokensInSameOrder ? pair1.reserve0 : pair1.reserve1;
-    const reserveBOut = tokensInSameOrder ? pair1.reserve1 : pair1.reserve0;
+    const isZeroForOne = pair1.reserve0 < pair1.reserve1;
+    const normalizedPair0Reserve0 = tokensInSameOrder
+      ? pair0.reserve0
+      : pair0.reserve1;
+    const normalizedPair0Reserve1 = tokensInSameOrder
+      ? pair0.reserve1
+      : pair0.reserve0;
 
-    const optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
+    let reserveAIn = isZeroForOne ? pair1.reserve0 : pair1.reserve1;
+    let reserveAOut = isZeroForOne ? pair1.reserve1 : pair1.reserve0;
+    let reserveBIn = isZeroForOne
+      ? normalizedPair0Reserve0
+      : normalizedPair0Reserve1;
+    let reserveBOut = isZeroForOne
+      ? normalizedPair0Reserve1
+      : normalizedPair0Reserve0;
+
+    let optimalArbitrageAmount = this.calculateArbitrageOptimalAmount(
       reserveAIn,
       reserveAOut,
       reserveBIn,
@@ -104,6 +129,11 @@ export default class ArbitrageMath {
       feeDenominator
     );
 
-    return { optimalArbitrageAmount, isZeroForOne: false };
+    return {
+      optimalArbitrageAmount,
+      isZeroForOne: isZeroForOne,
+      pair0: pair1,
+      pair1: pair0,
+    };
   }
 }

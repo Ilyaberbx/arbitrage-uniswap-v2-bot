@@ -15,14 +15,11 @@ export class ArbitrageV2Strategy implements IArbitrageStrategy {
       flashSwapArbitrageService.tryFindOpportunity(pairsInfo);
 
     if (flashSwapParams === undefined) {
-      console.log(
-        "No opportunity found for V2 strategy on chain ",
-        this.config.chainName
-      );
-
       return;
     }
 
+    console.log(flashSwapParams);
+    console.log(pairsInfo);
     console.log("Executing V2 flash swap...");
     await flashSwapArbitrageService.executeFlashSwap(
       flashSwapParams,

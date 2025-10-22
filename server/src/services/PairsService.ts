@@ -31,8 +31,6 @@ export class PairsService {
         ];
         const token0Result = pairsResults[i + 1].result as Address;
         const token1Result = pairsResults[i + 2].result as Address;
-        const price0CumulativeLast = pairsResults[i + 3].result as bigint;
-        const price1CumulativeLast = pairsResults[i + 4].result as bigint;
         const reserve0 = reservesResult[0];
         const reserve1 = reservesResult[1];
         const lastUpdatedTimestamp = reservesResult[2];
@@ -53,8 +51,6 @@ export class PairsService {
           reserve0: reserve0,
           reserve1: reserve1,
           lastUpdatedTimestamp: lastUpdatedTimestamp,
-          price0CumulativeLast: price0CumulativeLast,
-          price1CumulativeLast: price1CumulativeLast,
         });
       } else {
         console.error(
@@ -105,16 +101,6 @@ export class PairsService {
         address: pair.address as Address,
         abi: UNISWAP_V2_PAIR_ABI,
         functionName: "token1",
-      },
-      {
-        address: pair.address as Address,
-        abi: UNISWAP_V2_PAIR_ABI,
-        functionName: "price0CumulativeLast",
-      },
-      {
-        address: pair.address as Address,
-        abi: UNISWAP_V2_PAIR_ABI,
-        functionName: "price1CumulativeLast",
       },
     ];
   }

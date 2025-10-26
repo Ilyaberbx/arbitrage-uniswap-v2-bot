@@ -74,11 +74,6 @@ export default class ArbitrageMath {
     if (fromDecimals === toDecimals) {
       return value;
     }
-
-    if (fromDecimals > toDecimals) {
-      return value / 10n ** BigInt(fromDecimals - toDecimals);
-    } else {
-      return value * 10n ** BigInt(toDecimals - fromDecimals);
-    }
+    return value / 10n ** BigInt(fromDecimals - toDecimals);
   }
 }

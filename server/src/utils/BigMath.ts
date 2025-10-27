@@ -1,22 +1,5 @@
 export class BigMath {
-  public static abs(x: bigint) {
-    return x < 0n ? -x : x;
-  }
-  public static sign(x: bigint) {
-    if (x === 0n) return 0n;
-    return x < 0n ? -1n : 1n;
-  }
-  public static pow(base: bigint, exponent: bigint) {
-    return base ** exponent;
-  }
-  public static min(value: bigint, ...values: bigint[]) {
-    for (const v of values) if (v < value) value = v;
-    return value;
-  }
-  public static max(value: bigint, ...values: bigint[]) {
-    for (const v of values) if (v > value) value = v;
-    return value;
-  }
+  public static readonly PRECISION = 10n ** 18n;
 
   public static sqrt(value: bigint): bigint {
     if (value < 0n) {
@@ -32,5 +15,36 @@ export class BigMath {
       x = (value / x + x) / 2n;
     }
     return z;
+  }
+
+  public static abs(value: bigint): bigint {
+    return value < 0n ? -value : value;
+  }
+
+  public static normalize(value: bigint, decimals: number): bigint {
+    return value * 10n ** BigInt(18 - decimals);
+  }
+
+  public static denormalize(value: bigint, decimals: number): bigint {
+    return value / 10n ** BigInt(18 - decimals);
+  }
+
+  public static mul(x: bigint, y: bigint): bigint {
+    return (x * y) / this.PRECISION;
+  }
+
+  public static div(x: bigint, y: bigint): bigint {
+    return (x * this.PRECISION) / y;
+  }
+
+  public static convertDecimals(
+    value: bigint,
+    fromDecimals: number,
+    toDecimals: number
+  ): bigint {
+    if (fromDecimals === toDecimals) {
+      return value;
+    }
+    return value / 10n ** BigInt(fromDecimals - toDecimals);
   }
 }

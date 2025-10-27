@@ -14,7 +14,16 @@ export class FlashSwapArbitrageService {
           continue;
         }
 
-        return undefined;
+        const flashSwapParams = ArbitrageMath.tryFindArbitrageOpportunity(
+          pair,
+          otherPair
+        );
+        if (flashSwapParams === undefined) {
+          continue;
+        }
+
+        console.log("Flash swap params:", flashSwapParams);
+        return flashSwapParams;
       }
     }
 
@@ -57,10 +66,6 @@ export class FlashSwapArbitrageService {
 
     const txHash = await walletClient.writeContract(request);
     console.log(`Transaction sent: ${txHash} on chain ${chainName}`);
-  }
-
-  private displayOpportunity(flashSwapParams: FlashSwapParams) {
-    console.log(`Opportunity found: ${flashSwapParams}`);
   }
 }
 

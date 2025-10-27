@@ -28,10 +28,10 @@ contract ArbitrumBotUniswapV2Test is Test {
         vm.startPrank(s_alice);
         uint256 initialBalance = IERC20(address(USDC)).balanceOf(s_alice);
         s_arbitrageBot.flashSwapArbitrage(
-            CAMELOT_V2_PAIR_ADDRESS,
             SUSHISWAP_V2_PAIR_ADDRESS,
+            CAMELOT_V2_PAIR_ADDRESS,
             false,
-            420172738952,
+            28406789956772511791,
             1
         );
         vm.stopPrank();

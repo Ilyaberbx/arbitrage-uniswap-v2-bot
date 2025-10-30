@@ -111,18 +111,6 @@ export default class ArbitrageMath {
     const referenceDecimals = isZeroForOne
       ? referencePair.token0.decimals
       : referencePair.token1.decimals;
-
-    console.log("isZeroForOne", isZeroForOne);
-    console.log("pair0ForFlashSwap", pair0ForFlashSwap);
-    console.log("pair1ForFlashSwap", pair1ForFlashSwap);
-    console.log("referencePair", referencePair);
-    console.log("referenceDecimals", referenceDecimals);
-    console.log("optimalArbitrageAmount", optimalArbitrageAmount);
-    console.log(
-      "BigMath.denormalize(optimalArbitrageAmount, referenceDecimals)",
-      BigMath.denormalize(optimalArbitrageAmount, referenceDecimals)
-    );
-    console.log("1n", 1n);
     return {
       pair0: pair0ForFlashSwap.pairAddress,
       pair1: pair1ForFlashSwap.pairAddress,
